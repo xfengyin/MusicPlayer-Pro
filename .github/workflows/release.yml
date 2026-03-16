@@ -32,7 +32,7 @@ jobs:
       - name: Build web
         run: |
           cd web
-          npm run build
+          npx vite build
       
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
