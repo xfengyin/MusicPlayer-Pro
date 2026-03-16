@@ -28,7 +28,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: true
     },
-    icon: path.join(__dirname, '..', 'build', 'icon.png'),
+    icon: path.join(__dirname, 'build', 'icon.png'),
     title: 'MusicPlayerPro'
   });
 
@@ -38,7 +38,7 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
+    const indexPath = path.join(__dirname, 'renderer', 'index.html');
     mainWindow.loadFile(indexPath);
   }
 
@@ -59,7 +59,7 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, '..', 'build', 'icon.png');
+  const iconPath = path.join(__dirname, 'build', 'icon.png');
   try {
     tray = new Tray(nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 }));
   } catch (e) {

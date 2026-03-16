@@ -2,7 +2,7 @@
   "name": "music-player-pro",
   "version": "1.0.0",
   "description": "Music Player Pro - 跨平台音乐播放器",
-  "main": "src/main/main.js",
+  "main": "main.js",
   "scripts": {
     "dev": "electron .",
     "build": "electron-builder",
@@ -30,11 +30,12 @@
       "buildResources": "build"
     },
     "files": [
-      "src/**/*",
+      "main.js",
+      "preload.js",
       "renderer/**/*"
     ],
     "extraMetadata": {
-      "main": "src/main/main.js"
+      "main": "main.js"
     },
     "win": {
       "target": [
@@ -47,7 +48,7 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": false,
@@ -57,7 +58,7 @@
     },
     "mac": {
       "target": ["dmg", "zip"],
-      "icon": "build/icon.icns",
+      "icon": "build/icon.png",
       "category": "public.app-category.music"
     },
     "linux": {
