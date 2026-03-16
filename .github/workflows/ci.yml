@@ -1,10 +1,8 @@
 name: CI
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,5 +11,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: cd web && npm install
+      - name: Build web
+        run: |
+          cd web
+          npm install
+      - name: Build server
+        run: |
+          cd server
+          go build ./...
       - run: echo done
