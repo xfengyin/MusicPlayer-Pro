@@ -61,7 +61,7 @@
       >
         <div class="results-list">
           <div
-            v-for="(song, index) in searchResults"
+            v-for="song in searchResults"
             :key="song.id"
             class="result-item"
             @click="selectResult(song)"
