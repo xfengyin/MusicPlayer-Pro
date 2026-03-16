@@ -9,7 +9,6 @@ on:
 
 env:
   NODE_VERSION: '22'
-  PNPM_VERSION: '9'
 
 jobs:
   build-web:
@@ -21,7 +20,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          version: 9
       
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -31,14 +30,12 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       
       - name: Install dependencies
-        run: |
-          cd web
-          pnpm install --frozen-lockfile
+        working-directory: web
+        run: pnpm install --frozen-lockfile
       
-      - name: Build web (skip type check for CI)
-        run: |
-          cd web
-          pnpm exec vite build
+      - name: Build web
+        working-directory: web
+        run: pnpm exec vite build
       
       - name: Upload web artifact
         uses: actions/upload-artifact@v4
@@ -62,16 +59,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      
       - name: Download web dist
         uses: actions/download-artifact@v4
         with:
           name: web-dist
           path: renderer
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -81,25 +78,21 @@ jobs:
           cache-dependency-path: electron/pnpm-lock.yaml
       
       - name: Install dependencies
-        run: |
-          cd electron
-          pnpm install --frozen-lockfile
+        working-directory: electron
+        run: pnpm install --frozen-lockfile
       
       - name: Create build resources
         run: |
           mkdir -p electron/build
-          # Create a simple 256x256 PNG icon using ImageMagick if available
           if command -v convert &> /dev/null; then
             convert -size 256x256 xc:#4A90D9 -gravity center -pointsize 72 -annotate +0+0 "MP" electron/build/icon.png
           else
-            # Create a minimal valid PNG (1x1 pixel, blue)
             echo -n -e '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82' > electron/build/icon.png
           fi
       
       - name: Build Electron App
-        run: |
-          cd electron
-          npm run build:${{ matrix.target == 'win' && 'win' || matrix.target == 'mac' && 'mac' || 'linux' }}
+        working-directory: electron
+        run: pnpm run build:${{ matrix.target == 'win' && 'win' || matrix.target == 'mac' && 'mac' || 'linux' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
