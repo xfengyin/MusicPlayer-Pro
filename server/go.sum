@@ -1,0 +1,8 @@
+github.com/gin-gonic/gin v1.9.1 h1:3DPhcKCLW0UqG3nvzBS4w7H9nXojLVdV3zQKj6i8fA=
+github.com/gin-gonic/gin v1.9.1/go.mod h1:8ex5fmVbXzPvXHrKkJ0ok7xF6AFH2YFhL+YT/iqRc9I=
+github.com/mattn/go-sqlite3 v1.14.19 h1:eIVbKt4n7XGV3KUr6aqPNfLwQTbqAH7ZfE2U4UpHLc0=
+github.com/mattn/go-sqlite3 v1.14.19/go.mod h1:NyWgC/yNuGj7Q9rpYnZvz2tw6t5fcm2irzHqJNB6M4o=
+gorm.io/driver/sqlite v1.5.4 h1:8ptbNJT2eqNOz3z6YG5K3fcaF4q86q7Y7ZWfMtX3l2w=
+gorm.io/driver/sqlite v1.5.4/go.mod h1:6fI4i/Q3r0I8G6Fvq2qBrmhNnX3aG7hR1Q2yQf3i5w=
+gorm.io/gorm v1.25.5 h1:0S8/aWiiKLS7l0f4pI2Y4RfHhjD+hoq/t+1vT5m9f2U=
+gorm.io/gorm v1.25.5/go.mod h1:hbnx/Oo0ChWMn1BIhpy1oYozzpM15i4YPuHDmfYtwg8=
