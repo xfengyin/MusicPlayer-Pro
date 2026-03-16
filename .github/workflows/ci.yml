@@ -1,24 +1,36 @@
 name: CI
+
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
+      
+      - name: Install web dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+      
       - name: Build web
-        run: |
-          cd web
-          npm install
-          npm run build
+        working-directory: web
+        run: pnpm exec vite build
+      
       - name: Build server
-        run: |
-          cd server
-          go version
-          go build ./...
+        working-directory: server
+        run: go build ./...
