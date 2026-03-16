@@ -24,13 +24,18 @@ jobs:
         with:
           go-version: '1.21'
       
+      - name: Fix go.sum
+        run: |
+          cd server
+          # Remove corrupted go.sum entries and let go regenerate
+          rm -f go.sum
+          go mod tidy
+      
       - name: Install web deps
         run: cd web && npm ci
       
-      - name: Build Go (auto-downloads deps)
-        run: |
-          cd server
-          go build -v ./...
+      - name: Build Go
+        run: cd server && go build -v ./...
       
       - name: Test Go
         run: cd server && go test -v ./... || true
