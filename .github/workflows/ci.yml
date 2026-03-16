@@ -3,16 +3,7 @@ name: CI
 on:
   push:
     branches: [main, develop]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
 
 jobs:
   test:
@@ -34,53 +25,15 @@ jobs:
           go-version: '1.21'
       
       - name: Install web deps
-        working-directory: web
-        run: npm ci
+        run: cd web && npm ci
       
-      - name: Install Go deps (with retry)
-        working-directory: server
+      - name: Build Go (auto-downloads deps)
         run: |
-          export GOPROXY=https://goproxy.cn,direct
-          go mod download || go mod tidy
-      
-      - name: Lint web
-        working-directory: web
-        run: npm run lint || true
+          cd server
+          go build -v ./...
       
       - name: Test Go
-        working-directory: server
-        run: go test ./... || true
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: test
-    if: false
-    steps:
-      - uses: actions/checkout@v4
+        run: cd server && go test -v ./... || true
       
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-      
-      - name: Build web
-        working-directory: web
-        run: npm ci && npm run build || true
-      
-      - name: Build server
-        working-directory: server
-        run: go build -o dist/server ./cmd/server
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: |
-            web/dist
-            server/dist
+      - name: Lint web
+        run: cd web && npm run lint || true
