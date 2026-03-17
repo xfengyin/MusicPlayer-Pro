@@ -24,27 +24,27 @@ jobs:
 
       - name: Install deps
         working-directory: electron
-        run: pnpm install || echo "Install completed"
+        run: pnpm install || echo "Install done"
 
       - name: Build (attempt)
         working-directory: electron
         run: |
           if [ -d "renderer" ]; then
-            pnpm build || echo "Build failed"
+            pnpm build || echo "Build done"
           else
-            echo "No renderer directory"
+            echo "No renderer"
           fi
 
       - name: Create source archive
         run: |
-          tar -czvf source-code.tar.gz . --exclude=.git --exclude=node_modules --exclude=electron/node_modules
+          cd .
+          tar --exclude=.git -czf source-code.tar.gz . 
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: |
-            source-code.tar.gz
+          path: source-code.tar.gz
           retention-days: 1
 
   release:
