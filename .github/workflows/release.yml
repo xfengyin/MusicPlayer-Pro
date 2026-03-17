@@ -7,17 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-          - os: windows-latest
-          - os: macos-latest
-    
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       
@@ -29,34 +21,91 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
       
-      - name: Install dependencies
+      - name: Install deps
         working-directory: electron
         run: pnpm install
       
       - name: Build
         working-directory: electron
-        run: pnpm build
+        run: pnpm build:win
       
-      - name: Upload artifacts
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-build
+          name: windows
           path: electron/dist/
-          retention-days: 5
 
-  release:
-    needs: build
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install deps
+        working-directory: electron
+        run: pnpm install
+      
+      - name: Build
+        working-directory: electron
+        run: pnpm build:mac
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: electron/dist/
+
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+      - uses: actions/checkout@v4
       
-      - name: Create Release
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install deps
+        working-directory: electron
+        run: pnpm install
+      
+      - name: Build
+        working-directory: electron
+        run: pnpm build:linux
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: electron/dist/
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all
+        uses: actions/download-artifact@v4
+      
+      - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            **/*.exe
+            **/*.dmg
+            **/*.AppImage
+            **/*.deb
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
