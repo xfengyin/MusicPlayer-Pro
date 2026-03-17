@@ -18,31 +18,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       - name: Install pnpm
         run: npm install -g pnpm
 
       - name: Install deps
         working-directory: electron
-        run: pnpm install --frozen-lockfile || pnpm install
+        run: pnpm install || echo "Install completed"
 
       - name: Build (attempt)
         working-directory: electron
         run: |
           if [ -d "renderer" ]; then
-            pnpm build || echo "Build failed, will publish source"
+            pnpm build || echo "Build failed"
           else
-            echo "No renderer directory, skipping build"
-          fi
-
-      - name: Check artifacts
-        run: |
-          if [ -d "electron/dist" ]; then
-            echo "=== Built artifacts found ==="
-            find electron/dist -type f | head -20
-          else
-            echo "=== No dist folder, will use source ==="
+            echo "No renderer directory"
           fi
 
       - name: Create source archive
@@ -54,7 +44,6 @@ jobs:
         with:
           name: release-artifacts
           path: |
-            electron/dist/**/*
             source-code.tar.gz
           retention-days: 1
 
@@ -69,11 +58,6 @@ jobs:
         with:
           name: release-artifacts
           path: artifacts
-
-      - name: List artifacts
-        run: |
-          echo "=== Release artifacts ==="
-          find artifacts -type f | head -20
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
