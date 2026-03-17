@@ -2,13 +2,68 @@ name: Build & Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install deps
+        working-directory: electron
+        run: pnpm install
+      
+      - name: Build
+        working-directory: electron
+        run: pnpm build:win
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: electron/dist/
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install pnpm
+        run: npm install -g pnpm
+      
+      - name: Install deps
+        working-directory: electron
+        run: pnpm install
+      
+      - name: Build
+        working-directory: electron
+        run: pnpm build:mac
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: electron/dist/
+
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,48 +80,31 @@ jobs:
         working-directory: electron
         run: pnpm install
       
-      - name: Check package.json
+      - name: Build
         working-directory: electron
-        run: ls -la
+        run: pnpm build:linux
       
-      - name: Build Linux
-        working-directory: electron
-        run: pnpm build:linux || echo "Linux build may have issues"
-      
-      - name: List dist
-        working-directory: electron
-        run: |
-          ls -la dist/ 2>/dev/null || echo "No dist"
-          find . -name "*.exe" 2>/dev/null || echo "No exe"
-          find . -name "*.AppImage" 2>/dev/null || echo "No AppImage"
-          find . -name "*.deb" 2>/dev/null || echo "No deb"
-      
-      - name: Upload artifacts
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: linux
           path: electron/dist/
-          retention-days: 1
 
   release:
-    needs: build
+    needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
+      - name: Download all
         uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: artifacts/
       
-      - name: List artifacts
-        run: |
-          ls -la artifacts/ || echo "No artifacts"
-          find artifacts/ -type f || echo "Empty"
-      
-      - name: Create Release
+      - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            **/*.exe
+            **/*.dmg
+            **/*.AppImage
+            **/*.deb
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
