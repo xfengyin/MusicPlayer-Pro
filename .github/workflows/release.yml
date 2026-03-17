@@ -25,20 +25,48 @@ jobs:
         working-directory: electron
         run: pnpm install
       
-      - name: Build (dev mode test)
+      - name: Check package.json
+        working-directory: electron
+        run: ls -la
+      
+      - name: Build Linux
+        working-directory: electron
+        run: pnpm build:linux || echo "Linux build may have issues"
+      
+      - name: List dist
         working-directory: electron
         run: |
-          pnpm build:win || echo "Windows build may need special env"
-          pnpm build:linux || echo "Linux build failed"
-          ls -la dist/ || echo "No dist folder"
+          ls -la dist/ 2>/dev/null || echo "No dist"
+          find . -name "*.exe" 2>/dev/null || echo "No exe"
+          find . -name "*.AppImage" 2>/dev/null || echo "No AppImage"
+          find . -name "*.deb" 2>/dev/null || echo "No deb"
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: electron/dist/
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: artifacts/
+      
+      - name: List artifacts
+        run: |
+          ls -la artifacts/ || echo "No artifacts"
+          find artifacts/ -type f || echo "Empty"
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            electron/dist/**/*.exe
-            electron/dist/**/*.AppImage
-            electron/dist/**/*.deb
+          files: artifacts/**/*
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
