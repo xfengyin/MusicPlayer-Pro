@@ -1,29 +1,74 @@
-name: Release
+name: Build & Release
 
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag'
+        required: false
 
 jobs:
-  release:
+  build:
+    name: Build (${{ matrix.os }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Package
-        run: |
-          tar -czvf release.tar.gz .
-      
-      - name: Upload
-        run: |
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @release.tar.gz \
-            "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets?name=source.tar.gz"
-      
-      - name: Verify
-        run: echo "Upload complete"
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install deps
+        working-directory: electron
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: electron
+        run: pnpm build
+
+      - name: List artifacts
+        run: |
+          echo "=== Built files ==="
+          find electron -type f \( -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" \) 2>/dev/null || echo "Checking dist..."
+          ls -la electron/dist/ 2>/dev/null || echo "No dist folder"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: electron/dist/
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
