@@ -28,9 +28,7 @@ jobs:
 
       - name: Create source archive
         run: |
-          pwd
-          ls -la
-          tar -czf ../source-code.tar.gz . --ignore-failed-read || tar -czf ../source-code.tar.gz *
+          tar -czf source-code.tar.gz . --ignore-failed-read || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -48,12 +46,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: release-artifacts
-          path: artifacts
+          path: ./artifacts
+
+      - name: List files
+        run: ls -la artifacts/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          files: ./artifacts/*
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
