@@ -6,10 +6,14 @@ on:
       - "v*"
   workflow_dispatch:
 
+env:
+  NODE_VERSION: "20"
+
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
+  # Build Windows .exe
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,44 +21,158 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Install deps
-        working-directory: electron
-        run: pnpm install || true
+      # Build Vue frontend
+      - name: Install web deps
+        working-directory: web
+        run: pnpm install
 
-      - name: Create source archive
+      - name: Build web
+        working-directory: web
+        run: pnpm run build
+
+      # Copy web build to electron renderer
+      - name: Prepare renderer
         run: |
-          tar -czf source-code.tar.gz . --ignore-failed-read || true
+          mkdir -p electron/renderer
+          cp -r web/dist/* electron/renderer/
 
-      - name: Upload artifacts
+      # Build Electron
+      - name: Install electron deps
+        working-directory: electron
+        run: pnpm install
+
+      - name: Build Windows
+        working-directory: electron
+        run: pnpm run build:win
+
+      - name: Find exe files
+        shell: pwsh
+        working-directory: electron
+        run: |
+          Write-Host "=== Looking for exe files ==="
+          Get-ChildItem -Path "dist" -Recurse -Filter "*.exe" | Select-Object FullName,Length
+
+      - name: Upload exe (portable)
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifacts
-          path: source-code.tar.gz
+          name: windows-exe-portable
+          path: electron/dist/win-unpacked/*.exe
+          if-no-files-found: warn
 
+      - name: Upload installer (nsis)
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-nsis
+          path: electron/dist/*.exe
+          if-no-files-found: warn
+
+  # Build Android APK
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temulin'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # Build Vue frontend
+      - name: Install web deps
+        working-directory: web
+        run: pnpm install
+
+      - name: Build web
+        working-directory: web
+        run: pnpm run build
+
+      # Copy web build to electron renderer
+      - name: Prepare renderer
+        run: |
+          mkdir -p electron/renderer
+          cp -r web/dist/* electron/renderer/
+
+      # Setup Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      # Build Android
+      - name: Install electron deps
+        working-directory: electron
+        run: pnpm install
+
+      - name: Build Android
+        working-directory: electron
+        run: pnpm run build:android
+
+      - name: Find APK files
+        run: |
+          echo "=== Looking for APK files ==="
+          find electron/dist -name "*.apk" -type f 2>/dev/null
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: electron/dist/*.apk
+          if-no-files-found: warn
+
+  # Create GitHub Release
   release:
-    needs: build
+    needs: [build-windows, build-android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
+      - name: Download Windows artifacts
         uses: actions/download-artifact@v4
         with:
-          name: release-artifacts
-          path: ./artifacts
+          name: windows-exe-portable
+          path: release/win-portable
 
-      - name: List files
-        run: ls -la artifacts/
+      - name: Download Windows NSIS
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-nsis
+          path: release/win-nsis
+
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: release/android
+
+      - name: List release files
+        run: |
+          echo "=== Release files ==="
+          find release -type f
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./artifacts/*
+          files: |
+            release/win-portable/*.exe
+            release/win-nsis/*.exe
+            release/android/*.apk
           draft: false
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
