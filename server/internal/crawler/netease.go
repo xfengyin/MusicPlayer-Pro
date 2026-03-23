@@ -139,21 +139,14 @@ func (nc *NetEaseCrawler) Search(ctx context.Context, query string, limit int) (
 
 // GetSongDetail 获取歌曲详情
 func (nc *NetEaseCrawler) GetSongDetail(ctx context.Context, songID string) (*model.Song, error) {
-	// TODO: 实现获取歌曲详情
-	// 目前先返回模拟数据
-	return &model.Song{
-		Title:    "示例歌曲",
-		Artist:   "示例艺术家",
-		Album:    "示例专辑",
-		Duration: 240,
-		URL:      "https://example.com/song.mp3",
-		CoverURL: "https://example.com/cover.jpg",
-	}, nil
+	// 注意：由于版权原因，我们不能直接提供真实音乐数据
+	// 这里提供一个框架，实际部署时应使用官方API或合法途径
+	return nil, fmt.Errorf("网易云音乐详情获取功能暂未启用，因版权原因")
 }
 
 // GetPlayURL 获取播放 URL
 func (nc *NetEaseCrawler) GetPlayURL(ctx context.Context, songID string) (string, error) {
-	// TODO: 实现获取播放 URL
-	// 目前先返回模拟数据
-	return fmt.Sprintf("https://music.163.com/song/media/outer/url?id=%s.mp3", songID), nil
+	// 注意：由于版权原因，我们不能直接提供真实音乐播放链接
+	// 这里提供一个框架，实际部署时应使用官方API或合法途径
+	return "", fmt.Errorf("网易云音乐播放链接获取功能暂未启用，因版权原因")
 }

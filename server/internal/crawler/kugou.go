@@ -130,21 +130,14 @@ func (kc *KuGouCrawler) Search(ctx context.Context, query string, limit int) (*S
 
 // GetSongDetail 获取歌曲详情
 func (kc *KuGouCrawler) GetSongDetail(ctx context.Context, songID string) (*model.Song, error) {
-	// TODO: 实现获取歌曲详情
-	// 目前先返回模拟数据
-	return &model.Song{
-		Title:    "酷狗示例歌曲",
-		Artist:   "酷狗示例艺术家",
-		Album:    "酷狗示例专辑",
-		Duration: 200,
-		URL:      "https://example.com/kugou_song.mp3",
-		CoverURL: "https://example.com/kugou_cover.jpg",
-	}, nil
+	// 注意：由于版权原因，我们不能直接提供真实音乐数据
+	// 这里提供一个框架，实际部署时应使用官方API或合法途径
+	return nil, fmt.Errorf("酷狗音乐详情获取功能暂未启用，因版权原因")
 }
 
 // GetPlayURL 获取播放 URL
 func (kc *KuGouCrawler) GetPlayURL(ctx context.Context, songID string) (string, error) {
-	// TODO: 实现获取播放 URL
-	// 目前先返回模拟数据
-	return fmt.Sprintf("https://www.kugou.com/song/%s.mp3", songID), nil
+	// 注意：由于版权原因，我们不能直接提供真实音乐播放链接
+	// 这里提供一个框架，实际部署时应使用官方API或合法途径
+	return "", fmt.Errorf("酷狗音乐播放链接获取功能暂未启用，因版权原因")
 }

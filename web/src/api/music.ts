@@ -74,8 +74,8 @@ export async function searchMusic(
   page: number = 1,
   limit: number = 20
 ): Promise<SearchResponse> {
-  const response = await apiClient.get<SearchResponse>('/music/search', {
-    params: { query, page, limit },
+  const response = await apiClient.get<SearchResponse>('/search', {
+    params: { q: query, page, limit },
   })
   return response
 }
@@ -85,7 +85,7 @@ export async function searchMusic(
  * @param songId 歌曲 ID
  */
 export async function getSongDetail(songId: string): Promise<Song> {
-  const response = await apiClient.get<Song>(`/music/song/${songId}`)
+  const response = await apiClient.get<Song>(`/song/${songId}`)
   return response
 }
 
@@ -94,7 +94,7 @@ export async function getSongDetail(songId: string): Promise<Song> {
  * @param songId 歌曲 ID
  */
 export async function getSongUrl(songId: string): Promise<{ url: string }> {
-  const response = await apiClient.get<{ url: string }>(`/music/song/${songId}/url`)
+  const response = await apiClient.get<{ url: string }>(`/song/${songId}/url`)
   return response
 }
 
@@ -103,7 +103,7 @@ export async function getSongUrl(songId: string): Promise<{ url: string }> {
  * @param songId 歌曲 ID
  */
 export async function getLyrics(songId: string): Promise<LyricResponse> {
-  const response = await apiClient.get<LyricResponse>(`/music/song/${songId}/lyric`)
+  const response = await apiClient.get<LyricResponse>(`/song/${songId}/lyric`)
   return response
 }
 
