@@ -10,7 +10,8 @@
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
     "build:android": "electron-builder --android",
-    "build:all": "electron-builder -mwl"
+    "build:all": "electron-builder -mwl",
+    "postinstall": "electron-builder install-app-deps"
   },
   "author": "xfengyin",
   "license": "MIT",
@@ -19,12 +20,14 @@
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
-    "electron-log": "^5.0.0"
+    "electron-log": "^5.0.0",
+    "electron-updater": "^6.1.7"
   },
   "build": {
     "appId": "com.musicplayer.pro",
     "productName": "MusicPlayerPro",
     "asar": true,
+    "compression": "maximum",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -32,10 +35,26 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*"
+      "renderer/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
     "extraMetadata": {
       "main": "main.js"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "xfengyin",
+      "repo": "MusicPlayer-Pro",
+      "releaseType": "draft"
     },
     "win": {
       "target": [
@@ -48,26 +67,39 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "MusicPlayerPro",
+      "runAfterFinish": true,
+      "installerHeaderIcon": "build/icon.png",
+      "installerIcon": "build/icon.png",
+      "uninstallerIcon": "build/icon.png"
     },
     "mac": {
       "target": ["dmg", "zip"],
       "icon": "build/icon.png",
-      "category": "public.app-category.music"
+      "category": "public.app-category.music",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "linux": {
       "target": ["AppImage", "deb"],
       "icon": "build/icon.png",
-      "category": "Audio"
+      "category": "Audio",
+      "synopsis": "跨平台音乐播放器",
+      "description": "Music Player Pro - 支持多平台的高品质音乐播放器",
+      "maintainer": "xfengyin"
     },
     "android": {
-      "target": ["apk", "aab"],
+      "target": ["apk"],
       "icon": "build/icon.png",
       "packageName": "com.musicplayer.pro"
     }
