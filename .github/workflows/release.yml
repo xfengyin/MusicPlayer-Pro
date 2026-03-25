@@ -34,7 +34,7 @@ jobs:
         run: npm install
       - name: Build Windows
         working-directory: electron
-        run: npx electron-builder --win --x64
+        run: npx electron-builder --win --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts
@@ -69,7 +69,7 @@ jobs:
         run: npm install
       - name: Build Linux
         working-directory: electron
-        run: npx electron-builder --linux --x64
+        run: npx electron-builder --linux --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts
@@ -104,7 +104,7 @@ jobs:
         run: npm install
       - name: Build macOS
         working-directory: electron
-        run: npx electron-builder --mac --universal
+        run: npx electron-builder --mac --universal --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts
