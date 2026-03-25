@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
+    "build": "vite build",
+    "build:check": "vue-tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "type-check": "vue-tsc --noEmit",
@@ -19,7 +20,8 @@
     "pinia": "^2.1.0",
     "naive-ui": "^2.38.0",
     "axios": "^1.6.0",
-    "@vueuse/core": "^10.7.0"
+    "@vueuse/core": "^10.7.0",
+    "@vicons/ionicons5": "^0.12.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
