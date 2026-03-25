@@ -138,7 +138,6 @@ import {
   Close,
   ReorderFour,
   Repeat,
-  RepeatOne,
   Shuffle,
 } from '@vicons/ionicons5'
 import type { Song } from '../types/music'
@@ -191,7 +190,7 @@ const modeOptions = computed(() => [
   {
     label: '单曲循环',
     key: 'single',
-    icon: () => h(NIcon, null, { default: () => h(RepeatOne) }),
+    icon: () => h(NIcon, null, { default: () => h(Repeat) }),
   },
   {
     label: '随机播放',
@@ -204,7 +203,7 @@ const loopMode = computed(() => playerStore.loopMode)
 const loopModeIcon = computed(() => {
   switch (playerStore.loopMode.value) {
     case 'single':
-      return RepeatOne
+      return Repeat
     case 'random':
       return Shuffle
     default:

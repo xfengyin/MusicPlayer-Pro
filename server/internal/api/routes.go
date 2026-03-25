@@ -79,6 +79,9 @@ func CORSMiddleware() gin.HandlerFunc {
 			"http://localhost:5173", 
 			"http://127.0.0.1:5173",
 			"http://localhost:8080",
+			"https://localhost",       // Capacitor Android/iOS
+			"capacitor://localhost",   // Capacitor iOS
+			"http://localhost",        // Capacitor fallback
 			// 在生产环境中，添加您的实际域名
 			// "https://yourdomain.com",
 			// "https://www.yourdomain.com",

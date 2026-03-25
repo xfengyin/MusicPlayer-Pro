@@ -40,7 +40,7 @@
         title="上一首"
       >
         <template #icon>
-          <n-icon :component="SkipBack" :size="24" />
+          <n-icon :component="PlaySkipBack" :size="24" />
         </template>
       </n-button>
 
@@ -66,7 +66,7 @@
         title="下一首"
       >
         <template #icon>
-          <n-icon :component="SkipForward" :size="24" />
+          <n-icon :component="PlaySkipForward" :size="24" />
         </template>
       </n-button>
 
@@ -107,18 +107,17 @@ import { NButton, NIcon, NSlider } from 'naive-ui'
 import {
   Play,
   Pause,
-  SkipBack,
-  SkipForward,
+  PlaySkipBack,
+  PlaySkipForward,
   VolumeHigh,
   VolumeLow,
   VolumeMute,
   Repeat,
-  RepeatOne,
   Shuffle,
   List,
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
-import { message } from 'naive-ui'
+import { useMessage } from "naive-ui"
 
 // Props
 interface Props {
@@ -136,6 +135,7 @@ const emit = defineEmits<{
 
 // 使用 Pinia store
 const playerStore = usePlayerStore()
+const message = useMessage()
 
 // 本地状态
 const progressValue = ref(0)
@@ -166,7 +166,7 @@ const volumeIcon = computed(() => {
 const loopModeIcon = computed(() => {
   switch (loopMode.value) {
     case 'single':
-      return RepeatOne
+      return Repeat
     case 'random':
       return Shuffle
     default:

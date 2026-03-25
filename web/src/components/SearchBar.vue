@@ -108,7 +108,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { NInput, NIcon, NButton, NSpin } from 'naive-ui'
-import { Search, Time, Close, Play, MusicalNote, SearchOff } from '@vicons/ionicons5'
+import { Search, Time, Close, Play, MusicalNote, SearchOutline as SearchOff } from '@vicons/ionicons5'
 import { searchMusic } from '../api/music'
 import type { Song } from '../types/music'
 import { usePlayerStore } from '../stores/player'
