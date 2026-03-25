@@ -9,7 +9,6 @@
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
-    "build:android": "electron-builder --android",
     "build:all": "electron-builder -mwl",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -60,11 +59,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.png",
@@ -82,7 +85,10 @@
       "uninstallerIcon": "build/icon.png"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "build/icon.png",
       "category": "public.app-category.music",
       "hardenedRuntime": true,
@@ -91,17 +97,15 @@
       "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "build/icon.png",
       "category": "Audio",
       "synopsis": "跨平台音乐播放器",
       "description": "Music Player Pro - 支持多平台的高品质音乐播放器",
       "maintainer": "xfengyin"
-    },
-    "android": {
-      "target": ["apk"],
-      "icon": "build/icon.png",
-      "packageName": "com.musicplayer.pro"
     }
   }
 }
