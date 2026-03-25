@@ -12,7 +12,11 @@
     "type-check": "vue-tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "cap:init": "npx cap init \"MusicPlayerPro\" \"com.musicplayer.pro\" --web-dir dist",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "build:android": "npm run build && npx cap sync android"
   },
   "dependencies": {
     "vue": "^3.4.0",
@@ -21,7 +25,11 @@
     "naive-ui": "^2.38.0",
     "axios": "^1.6.0",
     "@vueuse/core": "^10.7.0",
-    "@vicons/ionicons5": "^0.12.0"
+    "@vicons/ionicons5": "^0.12.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
@@ -34,6 +42,8 @@
     "@typescript-eslint/parser": "^6.0.0",
     "eslint-plugin-vue": "^9.19.0",
     "vitest": "^1.1.0",
-    "@vue/test-utils": "^2.4.0"
+    "@vue/test-utils": "^2.4.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
   }
 }
