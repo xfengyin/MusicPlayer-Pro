@@ -74,15 +74,11 @@
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "MusicPlayerPro",
-      "runAfterFinish": true,
-      "installerHeaderIcon": "build/icon.png",
-      "installerIcon": "build/icon.png",
-      "uninstallerIcon": "build/icon.png"
+      "shortcutName": "MusicPlayerPro"
     },
     "mac": {
       "target": [
@@ -90,11 +86,7 @@
         "zip"
       ],
       "icon": "build/icon.png",
-      "category": "public.app-category.music",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "category": "public.app-category.music"
     },
     "linux": {
       "target": [
@@ -107,5 +99,6 @@
       "description": "Music Player Pro - 支持多平台的高品质音乐播放器",
       "maintainer": "xfengyin"
     }
-  }
+  },
+  "homepage": "https://github.com/xfengyin/MusicPlayer-Pro"
 }
