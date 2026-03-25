@@ -11,111 +11,135 @@ env:
 
 jobs:
   build-windows:
-    name: Build Windows EXE
+    name: Build Windows
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
       - name: Install web deps
         working-directory: web
         run: npm install
-
       - name: Build web
         working-directory: web
         run: npm run build
-
       - name: Prepare renderer
+        shell: bash
         run: |
           mkdir -p electron/renderer
           cp -r web/dist/* electron/renderer/
-
       - name: Install electron deps
         working-directory: electron
         run: npm install
-
       - name: Build Windows
         working-directory: electron
-        run: npm run build:win
-
-      - name: Upload exe
+        run: npx electron-builder --win --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-exe
-          path: electron/dist/win-unpacked/*.exe
+          name: windows-artifacts
+          path: |
+            electron/dist/*.exe
+            electron/dist/*.msi
           if-no-files-found: warn
 
-  build-android:
-    name: Build Android APK
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temulin'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
       - name: Install web deps
         working-directory: web
         run: npm install
-
       - name: Build web
         working-directory: web
         run: npm run build
-
       - name: Prepare renderer
         run: |
           mkdir -p electron/renderer
           cp -r web/dist/* electron/renderer/
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-
       - name: Install electron deps
         working-directory: electron
         run: npm install
-
-      - name: Build Android
+      - name: Build Linux
         working-directory: electron
-        run: npm run build:android
-
-      - name: Upload APK
+        run: npx electron-builder --linux --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: electron/dist/*.apk
+          name: linux-artifacts
+          path: |
+            electron/dist/*.AppImage
+            electron/dist/*.deb
+          if-no-files-found: warn
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install web deps
+        working-directory: web
+        run: npm install
+      - name: Build web
+        working-directory: web
+        run: npm run build
+      - name: Prepare renderer
+        run: |
+          mkdir -p electron/renderer
+          cp -r web/dist/* electron/renderer/
+      - name: Install electron deps
+        working-directory: electron
+        run: npm install
+      - name: Build macOS
+        working-directory: electron
+        run: npx electron-builder --mac --universal
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: |
+            electron/dist/*.dmg
+            electron/dist/*.zip
           if-no-files-found: warn
 
   release:
-    needs: [build-windows, build-android]
+    name: Create Release
+    needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: release
-      
+          merge-multiple: false
+      - name: List release files
+        run: find release -type f | head -30
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release/windows-exe/*.exe
-            release/android-apk/*.apk
+            release/**/*.exe
+            release/**/*.msi
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.dmg
+            release/**/*.zip
           draft: false
           generate_release_notes: true
