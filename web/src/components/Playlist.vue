@@ -2,7 +2,7 @@
   <div class="playlist">
     <div class="playlist-header">
       <h3 class="playlist-title">
-        <n-icon :component="MusicalNotes" />
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="color: var(--spotify-green);"><path d="M3 4h18v2H3V4zm0 7h12v2H3v-2zm0 7h18v2H3v-2zm14-3l6-4v8l-6-4z"/></svg>
         播放列表
         <span class="playlist-count">({{ songs.length }} 首)</span>
       </h3>
@@ -67,52 +67,56 @@
           </div>
 
           <div class="song-index">
-            <span v-if="currentSong?.id !== song.id">{{ index + 1 }}</span>
-            <n-icon v-else :component="VolumeHigh" :size="18" class="playing-icon" />
+            <span v-if="currentSong?.id !== song.id" class="index-num">{{ index + 1 }}</span>
+            <div v-else class="playing-indicator">
+              <span class="bar"></span>
+              <span class="bar"></span>
+              <span class="bar"></span>
+            </div>
           </div>
 
-          <img
-            v-if="song.cover"
-            :src="song.cover"
-            :alt="song.title"
-            class="song-cover"
-            @error="onImageError"
-          />
-          <div v-else class="song-cover-placeholder">
-            <n-icon :component="MusicalNote" :size="24" />
+          <div class="song-cover-wrapper">
+            <img
+              v-if="song.cover"
+              :src="song.cover"
+              :alt="song.title"
+              class="song-cover"
+              @error="onImageError"
+            />
+            <div v-else class="song-cover-placeholder">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="song-cover-play">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="#000"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.04-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg>
+            </div>
           </div>
 
           <div class="song-info">
-            <div class="song-title">{{ song.title }}</div>
+            <div class="song-title" :class="{ 'active-title': currentSong?.id === song.id }">{{ song.title }}</div>
             <div class="song-artist">{{ song.artist }}</div>
           </div>
 
+          <div class="song-album">{{ song.album }}</div>
+
           <div class="song-duration">{{ formatTime(song.duration) }}</div>
 
-          <n-button
-            quaternary
-            circle
-            size="tiny"
+          <button
             class="remove-btn"
             @click.stop="onRemoveSong(index)"
           >
-            <template #icon>
-              <n-icon :component="Close" />
-            </template>
-          </n-button>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
         </div>
       </transition-group>
 
       <div v-if="songs.length === 0" class="empty-state">
-        <n-icon :component="MusicalNotesOutline" :size="64" />
+        <svg viewBox="0 0 24 24" width="64" height="64" fill="var(--text-subdued)" style="opacity: 0.3;"><path d="M3 4h18v2H3V4zm0 7h12v2H3v-2zm0 7h18v2H3v-2zm14-3l6-4v8l-6-4z"/></svg>
         <p>播放列表为空</p>
-        <n-button text type="primary" @click="onAddSong">
-          添加第一首歌曲
-        </n-button>
+        <button class="add-first-btn" @click="onAddSong">添加第一首歌曲</button>
       </div>
     </div>
 
-    <!-- 右键菜单 -->
+    <!-- Right-click menu -->
     <n-dropdown
       :show="showContextMenu"
       :options="contextMenuOptions"
@@ -129,13 +133,9 @@
 import { ref, computed, watch, h } from 'vue'
 import { NButton, NIcon, NDropdown, type DropdownOption } from 'naive-ui'
 import {
-  MusicalNotes,
   MusicalNote,
-  MusicalNotesOutline,
-  VolumeHigh,
   Add,
   Trash,
-  Close,
   ReorderFour,
   Repeat,
   RepeatOne,
@@ -144,7 +144,6 @@ import {
 import type { Song } from '../types/music'
 import { usePlayerStore } from '../stores/player'
 
-// Props
 interface Props {
   songs: Song[]
   currentSong?: Song | null
@@ -155,7 +154,6 @@ const props = withDefaults(defineProps<Props>(), {
   currentSong: null,
 })
 
-// Emits
 const emit = defineEmits<{
   play: [song: Song, index: number]
   remove: [index: number]
@@ -165,23 +163,19 @@ const emit = defineEmits<{
   'context-menu': [event: MouseEvent, song: Song, index: number]
 }>()
 
-// Store
 const playerStore = usePlayerStore()
 
-// 拖拽状态
 const isDragging = ref(false)
 const dragIndex = ref(-1)
 const dragOverIndex = ref(-1)
 const songRefs = ref<(HTMLElement | null)[]>([])
 
-// 右键菜单状态
 const showContextMenu = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 const contextMenuSong = ref<Song | null>(null)
 const contextMenuIndex = ref(-1)
 
-// 播放模式选项
 const modeOptions = computed(() => [
   {
     label: '列表循环',
@@ -203,26 +197,19 @@ const modeOptions = computed(() => [
 const loopMode = computed(() => playerStore.loopMode)
 const loopModeIcon = computed(() => {
   switch (playerStore.loopMode.value) {
-    case 'single':
-      return RepeatOne
-    case 'random':
-      return Shuffle
-    default:
-      return Repeat
+    case 'single': return RepeatOne
+    case 'random': return Shuffle
+    default: return Repeat
   }
 })
 const loopModeText = computed(() => {
   switch (playerStore.loopMode.value) {
-    case 'single':
-      return '单曲循环'
-    case 'random':
-      return '随机播放'
-    default:
-      return '列表循环'
+    case 'single': return '单曲循环'
+    case 'random': return '随机播放'
+    default: return '列表循环'
   }
 })
 
-// 右键菜单选项
 const contextMenuOptions = computed(() => [
   {
     label: '播放这首',
@@ -246,26 +233,22 @@ const contextMenuOptions = computed(() => [
   },
 ])
 
-// 设置歌曲引用
 function setSongRef(el: HTMLElement | null, index: number) {
   songRefs.value[index] = el
 }
 
-// 格式化时间
 function formatTime(seconds: number): string {
-  if (!seconds || isNaN(seconds)) return '00:00'
+  if (!seconds || isNaN(seconds)) return '-:--'
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// 图片加载失败处理
 function onImageError(e: Event) {
   const target = e.target as HTMLImageElement
   target.style.display = 'none'
 }
 
-// 拖拽事件处理
 function onDragStart(index: number, event: DragEvent) {
   isDragging.value = true
   dragIndex.value = index
@@ -298,7 +281,6 @@ function onDragEnd() {
   dragOverIndex.value = -1
 }
 
-// 播放控制
 async function onPlaySong(song: Song, index: number) {
   await playerStore.playSong(song, index)
   emit('play', song, index)
@@ -322,7 +304,6 @@ function onModeSelect(mode: string) {
   playerStore.setLoopMode(mode as 'list' | 'single' | 'random')
 }
 
-// 右键菜单
 function onContextMenu(event: MouseEvent, song: Song, index: number) {
   event.preventDefault()
   contextMenuSong.value = song
@@ -353,10 +334,7 @@ function onContextMenuSelect(key: string) {
       emit('reorder', contextMenuIndex.value, 0)
       break
     case 'move-bottom':
-      playerStore.reorderPlaylist(
-        contextMenuIndex.value,
-        props.songs.length - 1
-      )
+      playerStore.reorderPlaylist(contextMenuIndex.value, props.songs.length - 1)
       emit('reorder', contextMenuIndex.value, props.songs.length - 1)
       break
   }
@@ -364,12 +342,9 @@ function onContextMenuSelect(key: string) {
   hideContextMenu()
 }
 
-// 监听播放列表变化并持久化
 watch(
   () => props.songs,
-  () => {
-    // 播放列表变化时自动保存到 localStorage（在 store 中已处理）
-  },
+  () => {},
   { deep: true }
 )
 </script>
@@ -386,8 +361,8 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .playlist-title {
@@ -395,42 +370,43 @@ watch(
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-base);
 }
 
 .playlist-count {
-  font-size: 12px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-regular);
+  color: var(--text-subdued);
 }
 
 .playlist-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 
 .playlist-content {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 0 8px;
 }
 
 .song-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
+/* Song Item — Spotify Table Row Style */
 .song-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
   position: relative;
   user-select: none;
 }
@@ -439,16 +415,36 @@ watch(
   background: rgba(255, 255, 255, 0.08);
 }
 
+.song-item:hover .index-num {
+  display: none;
+}
+
+.song-item:hover .song-drag-handle {
+  opacity: 0;
+}
+
+.song-item:hover .remove-btn {
+  opacity: 1;
+}
+
+.song-item:hover .song-cover-play {
+  opacity: 1;
+}
+
+.song-item:hover .song-album {
+  color: var(--text-base);
+}
+
 .song-item.is-playing {
-  background: rgba(99, 102, 241, 0.25);
+  background: rgba(29, 185, 84, 0.1);
 }
 
 .song-item.is-dragging {
   opacity: 0.5;
   background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
 }
 
+/* Drag Handle */
 .song-drag-handle {
   display: flex;
   align-items: center;
@@ -456,114 +452,203 @@ watch(
   width: 24px;
   color: rgba(255, 255, 255, 0.3);
   cursor: grab;
-}
-
-.song-drag-handle:hover {
-  color: rgba(255, 255, 255, 0.6);
+  transition: opacity 0.2s;
 }
 
 .song-drag-handle:active {
   cursor: grabbing;
 }
 
+/* Song Index */
 .song-index {
   width: 24px;
   text-align: center;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-caption);
+  color: var(--text-subdued);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.playing-icon {
-  color: #6366f1;
-  animation: pulse 1.5s ease-in-out infinite;
+.index-num {
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
+/* Playing indicator — animated bars (Spotify style) */
+.playing-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.playing-indicator .bar {
+  width: 3px;
+  background: var(--spotify-green);
+  border-radius: 1px;
+  animation: bar-bounce 0.8s ease-in-out infinite;
+}
+
+.playing-indicator .bar:nth-child(1) {
+  height: 6px;
+  animation-delay: 0s;
+}
+
+.playing-indicator .bar:nth-child(2) {
+  height: 10px;
+  animation-delay: 0.2s;
+}
+
+.playing-indicator .bar:nth-child(3) {
+  height: 4px;
+  animation-delay: 0.4s;
+}
+
+@keyframes bar-bounce {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.4); }
+}
+
+/* Song Cover */
+.song-cover-wrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
 }
 
 .song-cover {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
   object-fit: cover;
-  flex-shrink: 0;
 }
 
 .song-cover-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--bg-highlight);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.3);
-  flex-shrink: 0;
+  color: var(--text-subdued);
 }
 
+.song-cover-play {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* Song Info */
 .song-info {
   flex: 1;
   min-width: 0;
 }
 
 .song-title {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.95);
+  font-size: var(--font-size-caption);
+  color: var(--text-base);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: var(--font-weight-regular);
+}
+
+.song-title.active-title {
+  color: var(--spotify-green);
 }
 
 .song-artist {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 2px;
+  font-size: var(--font-size-small);
+  color: var(--text-subdued);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.song-artist:hover {
+  text-decoration: underline;
+}
+
+/* Song Album */
+.song-album {
+  font-size: var(--font-size-small);
+  color: var(--text-subdued);
+  width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+
+/* Song Duration */
 .song-duration {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  padding: 0 12px;
+  font-size: var(--font-size-small);
+  color: var(--text-subdued);
+  min-width: 44px;
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
+/* Remove Button */
 .remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-subdued);
+  padding: 4px;
+  border-radius: var(--radius-circle);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
 }
 
-.song-item:hover .remove-btn {
-  opacity: 1;
+.remove-btn:hover {
+  color: var(--text-base);
 }
 
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 300px;
-  color: rgba(255, 255, 255, 0.4);
   gap: 16px;
 }
 
 .empty-state p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-caption);
+  color: var(--text-subdued);
 }
 
-/* 列表动画 */
+.add-first-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-base);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.add-first-btn:hover {
+  color: var(--spotify-green);
+}
+
+/* List animations */
 .list-enter-active,
 .list-leave-active {
   transition: all 0.3s ease;
@@ -585,18 +670,17 @@ watch(
   transition: transform 0.3s ease;
 }
 
-/* 滚动条样式 */
+/* Scrollbar */
 .playlist-content::-webkit-scrollbar {
   width: 6px;
 }
 
 .playlist-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+  background: transparent;
 }
 
 .playlist-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 3px;
 }
 

@@ -1,126 +1,67 @@
 <template>
   <div class="player-controls">
-    <!-- 进度条 -->
+    <!-- Progress Bar -->
     <div class="progress-section">
       <span class="time-label">{{ formatTime(currentTime) }}</span>
-      <n-slider
-        v-model:value="progressValue"
-        :min="0"
-        :max="duration"
-        :step="0.1"
-        :tooltip="false"
-        :disabled="!currentSong"
-        @update:value="onProgressChange"
-        @mousedown="onProgressStart"
-        @mouseup="onProgressEnd"
-        class="progress-slider"
-      />
+      <div class="progress-bar-wrapper">
+        <n-slider
+          v-model:value="progressValue"
+          :min="0"
+          :max="duration || 1"
+          :step="0.1"
+          :tooltip="false"
+          :disabled="!currentSong"
+          @update:value="onProgressChange"
+          @mousedown="onProgressStart"
+          @mouseup="onProgressEnd"
+          class="progress-slider"
+        />
+      </div>
       <span class="time-label">{{ formatTime(duration) }}</span>
     </div>
 
-    <!-- 控制按钮 -->
+    <!-- Control Buttons -->
     <div class="control-buttons">
-      <!-- 播放模式 -->
-      <n-button
-        quaternary
-        circle
-        @click="toggleLoopMode"
-        :title="loopModeText"
-      >
-        <template #icon>
-          <n-icon :component="loopModeIcon" :size="20" />
-        </template>
-      </n-button>
+      <!-- Shuffle / Loop Mode -->
+      <button class="ctrl-btn" :class="{ active: loopMode !== 'list' }" @click="toggleLoopMode" :title="loopModeText">
+        <n-icon :component="loopModeIcon" :size="18" />
+      </button>
 
-      <n-button
-        quaternary
-        circle
-        :disabled="!hasPrevSong"
-        @click="onPrevSong"
-        title="上一首"
-      >
-        <template #icon>
-          <n-icon :component="SkipBack" :size="24" />
-        </template>
-      </n-button>
+      <!-- Previous -->
+      <button class="ctrl-btn" :disabled="!hasPrevSong" @click="onPrevSong" title="上一首">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 3a1 1 0 00-1 1v16a1 1 0 102 0V4a1 1 0 00-1-1zm13.707 1.293a1 1 0 00-1.414 0L10 12.586l8.293 8.293a1 1 0 001.414-1.414L12.414 12l7.293-7.293a1 1 0 000-1.414z"/></svg>
+      </button>
 
-      <n-button
-        tertiary
-        circle
-        :loading="isLoading"
-        :disabled="!currentSong"
-        @click="onTogglePlay"
-        class="play-button"
-        title="播放/暂停"
-      >
-        <template #icon>
-          <n-icon :component="isPlaying ? Pause : Play" :size="32" />
-        </template>
-      </n-button>
+      <!-- Play / Pause — Main Circle -->
+      <button class="play-btn" :disabled="!currentSong" @click="onTogglePlay" title="播放/暂停">
+        <svg v-if="isPlaying && !isLoading" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M5.7 3a.7.7 0 00-.7.7v16.6a.7.7 0 00.7.7h2.6a.7.7 0 00.7-.7V3.7a.7.7 0 00-.7-.7H5.7zm10 0a.7.7 0 00-.7.7v16.6a.7.7 0 00.7.7h2.6a.7.7 0 00.7-.7V3.7a.7.7 0 00-.7-.7h-2.6z"/></svg>
+        <svg v-else-if="!isLoading" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11.04-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z"/></svg>
+      </button>
 
-      <n-button
-        quaternary
-        circle
-        :disabled="!hasNextSong"
-        @click="onNextSong"
-        title="下一首"
-      >
-        <template #icon>
-          <n-icon :component="SkipForward" :size="24" />
-        </template>
-      </n-button>
+      <!-- Next -->
+      <button class="ctrl-btn" :disabled="!hasNextSong" @click="onNextSong" title="下一首">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 3a1 1 0 011 1v16a1 1 0 11-2 0V4a1 1 0 011-1zM4.293 4.293a1 1 0 011.414 0L14 12.586l-8.293 8.293a1 1 0 01-1.414-1.414L11.586 12 4.293 4.707a1 1 0 010-1.414z"/></svg>
+      </button>
 
-      <!-- 播放列表 -->
-      <n-button
-        quaternary
-        circle
-        :disabled="playlist.length === 0"
-        @click="onTogglePlaylist"
-        title="播放列表"
-      >
-        <template #icon>
-          <n-icon :component="List" :size="20" />
-        </template>
-      </n-button>
-    </div>
-
-    <!-- 音量控制 -->
-    <div v-if="showVolume" class="volume-section">
-      <n-icon :component="volumeIcon" :size="20" @click="toggleMute" style="cursor: pointer" />
-      <n-slider
-        v-model:value="volumeValue"
-        :min="0"
-        :max="1"
-        :step="0.01"
-        :tooltip="false"
-        @update:value="onVolumeChange"
-        class="volume-slider"
-        style="width: 100px"
-      />
+      <!-- Playlist Toggle -->
+      <button class="ctrl-btn" @click="onTogglePlaylist" title="播放列表">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 4h18v2H3V4zm0 7h12v2H3v-2zm0 7h18v2H3v-2zm14-3l6-4v8l-6-4z"/></svg>
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { NButton, NIcon, NSlider } from 'naive-ui'
+import { NIcon, NSlider } from 'naive-ui'
 import {
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  VolumeHigh,
-  VolumeLow,
-  VolumeMute,
   Repeat,
   RepeatOne,
   Shuffle,
-  List,
 } from '@vicons/ionicons5'
 import { usePlayerStore } from '../stores/player'
 import { message } from 'naive-ui'
 
-// Props
 interface Props {
   showVolume?: boolean
 }
@@ -129,20 +70,15 @@ const props = withDefaults(defineProps<Props>(), {
   showVolume: true,
 })
 
-// Emits
 const emit = defineEmits<{
   'toggle-playlist': []
 }>()
 
-// 使用 Pinia store
 const playerStore = usePlayerStore()
 
-// 本地状态
 const progressValue = ref(0)
-const volumeValue = ref(playerStore.volume)
 const isDraggingProgress = ref(false)
 
-// 从 store 获取状态
 const {
   isPlaying,
   currentTime,
@@ -155,63 +91,35 @@ const {
   loopMode,
 } = playerStore
 
-// 音量图标
-const volumeIcon = computed(() => {
-  if (playerStore.isMuted || volumeValue.value === 0) return VolumeMute
-  if (volumeValue.value < 0.3) return VolumeLow
-  return VolumeHigh
-})
-
-// 播放模式图标和文本
 const loopModeIcon = computed(() => {
   switch (loopMode.value) {
-    case 'single':
-      return RepeatOne
-    case 'random':
-      return Shuffle
-    default:
-      return Repeat
+    case 'single': return RepeatOne
+    case 'random': return Shuffle
+    default: return Repeat
   }
 })
 
 const loopModeText = computed(() => {
   switch (loopMode.value) {
-    case 'single':
-      return '单曲循环'
-    case 'random':
-      return '随机播放'
-    default:
-      return '列表循环'
+    case 'single': return '单曲循环'
+    case 'random': return '随机播放'
+    default: return '列表循环'
   }
 })
 
-// 监听 store 时间变化（仅在非拖动状态时更新）
-watch(
-  () => playerStore.currentTime,
-  (newTime) => {
-    if (!isDraggingProgress.value) {
-      progressValue.value = newTime
-    }
+watch(() => playerStore.currentTime, (newTime) => {
+  if (!isDraggingProgress.value) {
+    progressValue.value = newTime
   }
-)
+})
 
-// 监听音量变化
-watch(
-  () => playerStore.volume,
-  (newVolume) => {
-    volumeValue.value = newVolume
-  }
-)
-
-// 格式化时间
 function formatTime(seconds: number): string {
-  if (!seconds || isNaN(seconds)) return '00:00'
+  if (!seconds || isNaN(seconds)) return '-:--'
   const mins = Math.floor(seconds / 60)
   const secs = Math.floor(seconds % 60)
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// 事件处理
 function onTogglePlay() {
   playerStore.togglePlay()
 }
@@ -239,14 +147,6 @@ function onProgressEnd() {
   playerStore.seekTo(progressValue.value)
 }
 
-function onVolumeChange(value: number) {
-  playerStore.setVolume(value)
-}
-
-function toggleMute() {
-  playerStore.toggleMute()
-}
-
 function toggleLoopMode() {
   const modes: Array<'list' | 'single' | 'random'> = ['list', 'single', 'random']
   const currentIndex = modes.indexOf(loopMode.value)
@@ -259,36 +159,30 @@ function onTogglePlaylist() {
   emit('toggle-playlist')
 }
 
-// 键盘快捷键
+// Keyboard shortcuts
 function handleKeyDown(event: KeyboardEvent) {
-  // 空格键：播放/暂停
   if (event.code === 'Space' && event.target === document.body) {
     event.preventDefault()
     onTogglePlay()
   }
-  // 左箭头：上一首
   if (event.code === 'ArrowLeft' && event.target === document.body) {
     event.preventDefault()
     onPrevSong()
   }
-  // 右箭头：下一首
   if (event.code === 'ArrowRight' && event.target === document.body) {
     event.preventDefault()
     onNextSong()
   }
-  // 上箭头：音量 +
   if (event.code === 'ArrowUp' && event.target === document.body) {
     event.preventDefault()
-    playerStore.setVolume(Math.min(1, volumeValue.value + 0.1))
+    playerStore.setVolume(Math.min(1, playerStore.volume + 0.1))
   }
-  // 下箭头：音量 -
   if (event.code === 'ArrowDown' && event.target === document.body) {
     event.preventDefault()
-    playerStore.setVolume(Math.max(0, volumeValue.value - 0.1))
+    playerStore.setVolume(Math.max(0, playerStore.volume - 0.1))
   }
 }
 
-// 生命周期
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
 })
@@ -303,62 +197,143 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
+  gap: 8px;
+  width: 100%;
 }
 
+/* Progress Section */
 .progress-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  max-width: 600px;
 }
 
 .time-label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-  min-width: 45px;
+  font-size: 11px;
+  color: var(--text-subdued);
+  min-width: 40px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-regular);
 }
 
-.progress-slider {
+.progress-bar-wrapper {
   flex: 1;
   cursor: pointer;
 }
 
+.progress-slider {
+  width: 100%;
+}
+
+.progress-slider :deep(.n-slider-rail) {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.progress-slider :deep(.n-slider-fill) {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--text-base);
+  transition: background 0.2s;
+}
+
+.progress-bar-wrapper:hover .progress-slider :deep(.n-slider-fill) {
+  background: var(--spotify-green);
+}
+
+.progress-slider :deep(.n-slider-handle) {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  background: var(--text-base);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-bar-wrapper:hover .progress-slider :deep(.n-slider-handle) {
+  opacity: 1;
+}
+
+/* Control Buttons */
 .control-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.play-button {
-  width: 56px;
-  height: 56px;
-}
-
-.volume-section {
+.ctrl-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-subdued);
+  padding: 8px;
+  border-radius: var(--radius-circle);
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  line-height: 1;
 }
 
-.volume-slider {
+.ctrl-btn:hover {
+  color: var(--text-base);
+  transform: scale(1.05);
+}
+
+.ctrl-btn.active {
+  color: var(--spotify-green);
+}
+
+.ctrl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ctrl-btn:disabled:hover {
+  color: var(--text-subdued);
+  transform: none;
+}
+
+/* Main Play Button — White Circle */
+.play-btn {
+  background: var(--text-base);
+  border: none;
   cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-circle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  transition: transform 0.1s;
+  padding: 0;
 }
 
-/* 禁用状态 */
-.player-controls:deep(.n-slider--disabled) {
+.play-btn:hover {
+  transform: scale(1.06);
+}
+
+.play-btn:active {
+  transform: scale(0.98);
+}
+
+.play-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.player-controls:deep(.n-button--disabled) {
-  opacity: 0.5;
+.play-btn svg {
+  display: block;
+}
+
+/* Disabled slider */
+.player-controls :deep(.n-slider--disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>
